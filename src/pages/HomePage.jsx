@@ -1,7 +1,27 @@
 // react
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+// firebase
+import { app } from "../../firebase";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+const auth = getAuth(app);
 
 export default function HomePage() {
+   const navigate = useNavigate();
+
+   const unsubscribe = () => {
+      onAuthStateChanged(auth, async (user) => {
+         if (user) {
+            navigate("/dashboard");
+         }
+      });
+   };
+
+   useEffect(() => {
+      unsubscribe();
+   }, []);
+
    return (
       <div className="w-screen h-screen overflow-hidden flex flex-col items-center justify-center bg-zinc-900">
          <div className="p-10 rounded-xl border border-zinc-700 flex flex-col gap-y-10">
