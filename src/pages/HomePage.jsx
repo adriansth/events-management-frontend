@@ -1,3 +1,6 @@
+// react
+import { Link } from "react-router-dom";
+
 export default function HomePage() {
    return (
       <div className="w-screen h-screen overflow-hidden flex flex-col items-center justify-center bg-zinc-900">
@@ -11,12 +14,16 @@ export default function HomePage() {
                </p>
             </div>
             <div className="flex gap-x-5 justify-start">
-               <button className="px-5 py-3 rounded-xl bg-white font-medium hover:bg-slate-200 transition-colors">
-                  Log in
-               </button>
-               <button className="px-5 py-3 rounded-xl bg-white font-medium hover:bg-slate-200 transition-colors">
-                  Sign up
-               </button>
+               <Link to="/login">
+                  <button className="px-5 py-3 rounded-xl bg-white font-medium hover:bg-slate-200 transition-colors">
+                     Log in
+                  </button>
+               </Link>
+               <Link to="/signup">
+                  <button className="px-5 py-3 rounded-xl bg-white font-medium hover:bg-slate-200 transition-colors">
+                     Sign up
+                  </button>
+               </Link>
             </div>
          </div>
       </div>
