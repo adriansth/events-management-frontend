@@ -36,7 +36,7 @@ export default function LoginPage() {
    };
 
    return (
-      <div className="w-screen h-screen overflow-hidden flex flex-col items-center justify-center bg-zinc-900">
+      <div className="w-screen h-screen overflow-hidden flex flex-col items-center justi21fy-center bg-zinc-900">
          <div className="w-[500px] p-10 rounded-xl border border-zinc-700 flex flex-col gap-y-10 bg-zinc-800">
             <div className="flex flex-col gap-y-5">
                <h1 className="font-medium text-3xl text-white">Log In</h1>

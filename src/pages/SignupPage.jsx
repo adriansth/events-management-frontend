@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 // firebase
 import { app } from "../../firebase";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+// requests
+import { createUser } from "../utils/requests/user";
 
 const auth = getAuth(app);
 
@@ -21,7 +23,20 @@ export default function SignupPage() {
       setError("");
       if (firstName && lastName && email && password) {
          try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(
+               auth,
+               email,
+               password
+            );
+            const token = await userCredential.user.getIdToken();
+            token &&
+               (await createUser(
+                  token,
+                  userCredential.user.uid,
+                  firstName,
+                  lastName,
+                  email
+               ));
             navigate("/dashboard");
          } catch (err) {
             console.error(err.message);
