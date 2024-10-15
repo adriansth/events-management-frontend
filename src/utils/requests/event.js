@@ -45,3 +45,59 @@ export const getEventsByOrganizer = async (token, organizer) => {
       console.error(err.message);
    }
 };
+
+export const addJoinerToEvent = async (token, eventId, userId) => {
+   try {
+      const response = await axios.post(
+         `${baseUrl}/event/${eventId}/join/`,
+         null,
+         {
+            params: {
+               user_id: userId,
+            },
+         },
+         {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         }
+      );
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
+
+export const acceptJoiner = async (token, eventId, userId) => {
+   try {
+      const response = await axios.put(
+         `${baseUrl}/event/${eventId}/joiner/${userId}/accept/`,
+         null,
+         {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         }
+      );
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
+
+export const cancelJoiner = async (token, eventId, userId) => {
+   try {
+      const response = await axios.put(
+         `${baseUrl}/event/${eventId}/joiner/${userId}/cancel/`,
+         null,
+         {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         }
+      );
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};

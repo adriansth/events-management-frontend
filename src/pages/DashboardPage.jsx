@@ -63,47 +63,59 @@ export default function DashboardPage() {
       <div className="w-screen min-h-screen overflow-hidden flex flex-col items-center bg-zinc-900 py-20 relative">
          <div className="w-[600px] flex flex-col gap-y-10">
             {/* owned events */}
-            <div className="w-full flex items-center justify-between">
-               <span className="text-white font-medium text-xl">
-                  Your Events
-               </span>
-               <button
-                  onClick={() => setCreateEventModal(!createEventModal)}
-                  className="rounded-xl bg-white px-3 py-2 font-medium hover:bg-slate-200 transition-colors flex items-center gap-x-2 text-sm"
-               >
-                  <Plus size={20} />
-                  <span>Create Event</span>
-               </button>
-            </div>
-            {/* owned events list */}
-            <div className="w-full flex flex-col gap-y-2">
-               {ownedEventsData.length > 0 ? (
-                  ownedEventsData?.map((event, i) => (
-                     <div
-                        key={i}
-                        className="py-3 px-5 rounded-xl w-full bg-zinc-800 flex flex-col"
-                     >
-                        <span className="font-medium text-white text-lg">
-                           {event.title}
-                        </span>
-                        <div className="flex items-center gap-x-2">
-                           <span className="font-medium text-slate-300">
-                              {dayjs(splitDateTime(event.date_time)[0]).format(
-                                 "MMMM D, YYYY"
-                              )}
+            <div className="w-full flex flex-col gap-y-5">
+               {/* header */}
+               <div className="w-full flex items-center justify-between">
+                  <span className="text-white font-medium text-xl">
+                     Your Events
+                  </span>
+                  <button
+                     onClick={() => setCreateEventModal(!createEventModal)}
+                     className="rounded-xl bg-white px-3 py-2 font-medium hover:bg-slate-200 transition-colors flex items-center gap-x-2 text-sm"
+                  >
+                     <Plus size={20} />
+                     <span>Create Event</span>
+                  </button>
+               </div>
+               {/* owned events list */}
+               <div className="w-full flex flex-col gap-y-2">
+                  {ownedEventsData.length > 0 ? (
+                     ownedEventsData?.map((event, i) => (
+                        <div
+                           key={i}
+                           className="py-3 px-5 rounded-xl w-full bg-zinc-800 flex flex-col"
+                        >
+                           <span className="font-medium text-white text-lg">
+                              {event.title}
                            </span>
-                           <span className="text-slate-300">@</span>
-                           <span className="rounded-lg bg-green-300 bg-opacity-50 text-green-950 font-medium px-1 border border-green-900">
-                              {splitDateTime(event.date_time)[1]}
-                           </span>
+                           <div className="flex items-center gap-x-2">
+                              <span className="font-medium text-slate-300">
+                                 {dayjs(
+                                    splitDateTime(event.date_time)[0]
+                                 ).format("MMMM D, YYYY")}
+                              </span>
+                              <span className="text-slate-300">@</span>
+                              <span className="rounded-lg bg-green-300 bg-opacity-50 text-green-950 font-medium px-1 border border-green-900">
+                                 {splitDateTime(event.date_time)[1]}
+                              </span>
+                           </div>
                         </div>
-                     </div>
-                  ))
-               ) : (
-                  <p className="text-slate-300 font-medium text-sm">
-                     You have no events yet.
-                  </p>
-               )}
+                     ))
+                  ) : (
+                     <p className="text-slate-300 font-medium text-sm">
+                        You have no events yet.
+                     </p>
+                  )}
+               </div>
+            </div>
+            {/* invited events */}
+            <div className="w-full flex flex-col gap-y-5">
+               {/* header */}
+               <div className="w-full flex items-center justify-between">
+                  <span className="text-white font-medium text-xl">
+                     You've been invited to
+                  </span>
+               </div>
             </div>
          </div>
          {/* create event modal */}
