@@ -101,3 +101,16 @@ export const cancelJoiner = async (token, eventId, userId) => {
       console.error(err.message);
    }
 };
+
+export const getInvitedEvents = async (token, userId) => {
+   try {
+      const response = await axios.get(`${baseUrl}/events/invited/${userId}`, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
