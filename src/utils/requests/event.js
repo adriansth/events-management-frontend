@@ -33,6 +33,19 @@ export const createEvent = async (
    }
 };
 
+export const getEventById = async (token, eventId) => {
+   try {
+      const response = await axios.get(`${baseUrl}/event/${eventId}`, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
+
 export const getEventsByOrganizer = async (token, organizer) => {
    try {
       const response = await axios.get(`${baseUrl}/event/owned/${organizer}/`, {
@@ -118,6 +131,19 @@ export const getJoinerByUserId = async (token, eventId, userId) => {
             },
          }
       );
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
+
+export const deleteEventById = async (token, eventId) => {
+   try {
+      const response = await axios.delete(`${baseUrl}/event/${eventId}`, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
       return response.data;
    } catch (err) {
       console.error(err.message);

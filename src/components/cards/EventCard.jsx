@@ -1,22 +1,64 @@
-// atoms
+import { useEffect } from "react";
 import { useAtom } from "jotai";
-import { selectedEventAtom } from "../../utils/atoms/selection";
+import {
+   selectedEventAtom,
+   invitedEventsDataAtom,
+} from "../../utils/atoms/selection";
 import { inviteModalAtom } from "../../utils/atoms/modals";
-// dayjs
 import dayjs from "dayjs";
-// icons
-import { Check, X } from "lucide-react";
-// firebase
+import { Check, Trash, X } from "lucide-react";
 import { app } from "../../../firebase";
 import { getAuth } from "firebase/auth";
-// requests
-import { cancelJoiner, acceptJoiner } from "../../utils/requests/event";
+import {
+   getEventById,
+   cancelJoiner,
+   acceptJoiner,
+   deleteEventById,
+} from "../../utils/requests/event";
 
 const auth = getAuth(app);
 
 export default function EventCard({ type, event, status }) {
    const [, setSelectedEvent] = useAtom(selectedEventAtom);
    const [, setInviteModal] = useAtom(inviteModalAtom);
+   const [invitedEventsData, setInvitedEventsData] = useAtom(
+      invitedEventsDataAtom
+   );
+
+   const POLLING_INTERVAL = 5000;
+
+   const pollEventStatus = async () => {
+      const token = await auth.currentUser.getIdToken();
+      if (token) {
+         const updatedEvent = await getEventById(token, event.id);
+         const currentJoiner = updatedEvent.joiners.find(
+            (joiner) => joiner.user_id === auth.currentUser.uid
+         );
+         if (currentJoiner && currentJoiner.status !== status) {
+            const updatedEvents = invitedEventsData.pendingEvents.map((ev) =>
+               ev.id === event.id
+                  ? {
+                       ...ev,
+                       joiners: ev.joiners.map((joiner) =>
+                          joiner.user_id === auth.currentUser.uid
+                             ? { ...joiner, status: currentJoiner.status }
+                             : joiner
+                       ),
+                    }
+                  : ev
+            );
+            setInvitedEventsData({
+               ...invitedEventsData,
+               pendingEvents: updatedEvents,
+            });
+         }
+      }
+   };
+
+   useEffect(() => {
+      const intervalId = setInterval(pollEventStatus, POLLING_INTERVAL);
+      return () => clearInterval(intervalId);
+   }, [status, invitedEventsData]);
 
    const splitDateTime = (input) => {
       const [datePart, timePart] = input.split(/-(?=\d{2}:\d{2})/);
@@ -29,6 +71,30 @@ export default function EventCard({ type, event, status }) {
       const token = await auth.currentUser.getIdToken();
       if (token && uid && eventId) {
          await acceptJoiner(token, eventId, uid);
+
+         const updatedInvitedEvents = invitedEventsData.pendingEvents.map(
+            (ev) => {
+               if (ev.id === eventId) {
+                  const updatedJoiners = ev.joiners.map((joiner) =>
+                     joiner.user_id === uid
+                        ? { ...joiner, status: "accepted" }
+                        : joiner
+                  );
+                  return { ...ev, joiners: updatedJoiners };
+               }
+               return ev;
+            }
+         );
+         setInvitedEventsData((prevData) => ({
+            ...prevData,
+            pendingEvents: prevData.pendingEvents.filter(
+               (ev) => ev.id !== eventId
+            ),
+            confirmedEvents: [
+               ...prevData.confirmedEvents,
+               ...updatedInvitedEvents,
+            ],
+         }));
       }
    };
 
@@ -38,6 +104,46 @@ export default function EventCard({ type, event, status }) {
       const token = await auth.currentUser.getIdToken();
       if (token && uid && eventId) {
          await cancelJoiner(token, eventId, uid);
+         const updatedInvitedEvents = invitedEventsData.pendingEvents.map(
+            (ev) => {
+               if (ev.id === eventId) {
+                  const updatedJoiners = ev.joiners.map((joiner) =>
+                     joiner.user_id === uid
+                        ? { ...joiner, status: "cancelled" }
+                        : joiner
+                  );
+                  return { ...ev, joiners: updatedJoiners };
+               }
+               return ev;
+            }
+         );
+         setInvitedEventsData((prevData) => ({
+            ...prevData,
+            pendingEvents: prevData.pendingEvents.filter(
+               (ev) => ev.id !== eventId
+            ),
+            cancelledEvents: [
+               ...prevData.cancelledEvents,
+               ...updatedInvitedEvents,
+            ],
+         }));
+      }
+   };
+
+   const handleDeleteEvent = async (e, eventId) => {
+      e.preventDefault();
+      const token = await auth.currentUser.getIdToken();
+      if (token && eventId) {
+         await deleteEventById(token, eventId);
+         setInvitedEventsData((prevData) => ({
+            ...prevData,
+            pendingEvents: prevData.pendingEvents.filter(
+               (ev) => ev.id !== eventId
+            ),
+            confirmedEvents: prevData.confirmedEvents.filter(
+               (ev) => ev.id !== eventId
+            ),
+         }));
       }
    };
 
@@ -97,15 +203,23 @@ export default function EventCard({ type, event, status }) {
             </div>
          )}
          {type === "owned" && (
-            <button
-               onClick={() => {
-                  setInviteModal(true);
-                  setSelectedEvent(event);
-               }}
-               className="bg-green-600 rounded-xl px-3 py-2 font-medium text-green-950 hover:bg-green-500 transition-colors"
-            >
-               Invite
-            </button>
+            <div className="flex items-center gap-x-2">
+               <button
+                  onClick={(e) => handleDeleteEvent(e, event.id)}
+                  className="flex items-center justify-center p-2 bg-red-300 bg-opacity-50 text-red-950 rounded-xl border border-red-900 hover:bg-white hover:bg-opacity-100 hover:border-white transition-all"
+               >
+                  <Trash size={20} />
+               </button>
+               <button
+                  onClick={() => {
+                     setInviteModal(true);
+                     setSelectedEvent(event);
+                  }}
+                  className="bg-green-600 rounded-xl px-3 py-2 font-medium text-green-950 hover:bg-green-500 transition-colors"
+               >
+                  Invite
+               </button>
+            </div>
          )}
       </div>
    );
