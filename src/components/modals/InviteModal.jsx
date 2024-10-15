@@ -23,7 +23,7 @@ export default function InviteModal({ eventId }) {
       const token = await auth.currentUser.getIdToken();
       const joiner = await getUserByEmail(token, email);
       if (joiner && eventId) {
-         await addJoinerToEvent(token, eventId, auth.currentUser.uid);
+         await addJoinerToEvent(token, eventId, joiner.uid);
          setInviteModal(false);
       } else {
          setError("User not registered");

@@ -40,12 +40,11 @@ export default function DashboardPage() {
       try {
          const ownedEvents = await getEventsByOrganizer(token, uid);
          setOwnedEventsData(ownedEvents);
-
          const invitedEvents = await getInvitedEvents(token, uid);
          const confirmedEvents = [];
          const pendingEvents = [];
          const cancelledEvents = [];
-         invitedEvents.forEach((event) => {
+         invitedEvents?.forEach((event) => {
             const currentJoiner = event.joiners.find(
                (joiner) => joiner.user_id === uid
             );
@@ -79,6 +78,7 @@ export default function DashboardPage() {
    };
 
    useEffect(() => {
+      let stopPolling;
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
          if (user) {
             const token = await user.getIdToken();
@@ -86,14 +86,16 @@ export default function DashboardPage() {
                const uid = user.uid;
                const data = await getUserByUid(token, uid);
                setUserData(data);
-               const stopPolling = startPolling(uid, token);
-               return () => stopPolling();
+               stopPolling = startPolling(uid, token);
             }
          } else {
             navigate("/");
          }
       });
-      return () => unsubscribe();
+      return () => {
+         if (stopPolling) stopPolling();
+         unsubscribe();
+      };
    }, []);
 
    useClickAway(modalRef, () => {
@@ -111,7 +113,9 @@ export default function DashboardPage() {
                      Your Events
                   </span>
                   <button
-                     onClick={() => setCreateEventModal(!createEventModal)}
+                     onClick={() => {
+                        setCreateEventModal(!createEventModal);
+                     }}
                      className="rounded-xl bg-white px-3 py-2 font-medium hover:bg-slate-200 transition-colors flex items-center gap-x-2 text-sm"
                   >
                      <Plus size={20} />
@@ -119,7 +123,7 @@ export default function DashboardPage() {
                   </button>
                </div>
                <div className="w-full flex flex-col gap-y-2">
-                  {ownedEventsData.length > 0 ? (
+                  {ownedEventsData?.length > 0 ? (
                      ownedEventsData.map((event, i) => (
                         <div key={i} className="w-full">
                            <EventCard type="owned" event={event} />
@@ -222,19 +226,19 @@ export default function DashboardPage() {
          </div>
 
          {/* create event modal */}
-         {createEventModal && userData && (
+         {createEventModal && (
             <div className="w-screen h-screen bg-black bg-opacity-30 flex items-center justify-center absolute top-0 left-0 overflow-hidden z-[100]">
-               <div ref={modalRef} className="w-[20%]">
-                  <CreateEventModal uid={userData.uid} />
+               <div ref={modalRef} className="w-[500px]">
+                  <CreateEventModal uid={userData?.uid} />
                </div>
             </div>
          )}
 
          {/* invite modal */}
-         {inviteModal && userData && (
+         {inviteModal && (
             <div className="w-screen h-screen bg-black bg-opacity-30 flex items-center justify-center absolute top-0 left-0 overflow-hidden z-[100]">
-               <div ref={modalRef} className="w-[20%]">
-                  <InviteModal eventId={selectedEvent.id} />
+               <div ref={modalRef} className="w-[500px]">
+                  <InviteModal eventId={selectedEvent?.id} />
                </div>
             </div>
          )}
