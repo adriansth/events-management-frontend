@@ -48,21 +48,14 @@ export const getEventsByOrganizer = async (token, organizer) => {
 
 export const addJoinerToEvent = async (token, eventId, userId) => {
    try {
-      const response = await axios.post(
-         `${baseUrl}/event/${eventId}/join/`,
-         null,
-         {
-            params: {
-               user_id: userId,
-            },
+      await axios.post(`${baseUrl}/event/${eventId}/join/`, null, {
+         params: {
+            user_id: userId,
          },
-         {
-            headers: {
-               Authorization: `Bearer ${token}`,
-            },
-         }
-      );
-      return response.data;
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
    } catch (err) {
       console.error(err.message);
    }
@@ -104,7 +97,7 @@ export const cancelJoiner = async (token, eventId, userId) => {
 
 export const getInvitedEvents = async (token, userId) => {
    try {
-      const response = await axios.get(`${baseUrl}/events/invited/${userId}`, {
+      const response = await axios.get(`${baseUrl}/event/invited/${userId}/`, {
          headers: {
             Authorization: `Bearer ${token}`,
          },

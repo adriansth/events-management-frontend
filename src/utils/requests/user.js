@@ -37,6 +37,19 @@ export const getUserByUid = async (token, uid) => {
    }
 };
 
+export const getUserByEmail = async (token, email) => {
+   try {
+      const response = await axios.get(`${baseUrl}/user/email/${email}`, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
+
 export const updateUserByUid = async (token, uid, updates) => {
    try {
       const response = await axios.put(`${baseUrl}/user/${uid}`, updates, {
