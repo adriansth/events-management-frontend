@@ -107,3 +107,19 @@ export const getInvitedEvents = async (token, userId) => {
       console.error(err.message);
    }
 };
+
+export const getJoinerByUserId = async (token, eventId, userId) => {
+   try {
+      const response = await axios.get(
+         `${baseUrl}/event/${eventId}/joiner/${userId}`,
+         {
+            headers: {
+               Authorization: `Bearer ${token}`,
+            },
+         }
+      );
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};

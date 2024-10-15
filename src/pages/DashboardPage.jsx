@@ -6,7 +6,7 @@ import { useState, useEffect, createRef } from "react";
 import { useClickAway } from "react-use";
 import { useNavigate } from "react-router-dom";
 // icons
-import { Plus } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { getUserByUid } from "../utils/requests/user";
 // atoms
 import { createEventModalAtom, inviteModalAtom } from "../utils/atoms/modals";
@@ -22,6 +22,7 @@ import {
 } from "../utils/requests/event";
 // dayjs
 import dayjs from "dayjs";
+import EventCard from "../components/cards/EventCard";
 
 const auth = getAuth(app);
 
@@ -31,7 +32,7 @@ export default function DashboardPage() {
 
    const [userData, setUserData] = useState(null);
    const [ownedEventsData, setOwnedEventsData] = useState([]);
-   const [invitedEventsData, setInvitedEventsData] = useState([]);
+   const [invitedEventsData, setInvitedEventsData] = useState(null);
 
    const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
 
@@ -48,7 +49,29 @@ export default function DashboardPage() {
                const ownedEvents = await getEventsByOrganizer(token, user.uid);
                console.log(ownedEvents);
                const invitedEvents = await getInvitedEvents(token, user.uid);
-               setInvitedEventsData(invitedEvents);
+               const confirmedEvents = [];
+               const pendingEvents = [];
+               const cancelledEvents = [];
+               invitedEvents.forEach((event) => {
+                  const currentJoiner = event.joiners.find(
+                     (joiner) => joiner.user_id === user.uid
+                  );
+                  if (currentJoiner) {
+                     if (currentJoiner.status === "accepted") {
+                        confirmedEvents.push(event);
+                     } else if (currentJoiner.status === "pending") {
+                        pendingEvents.push(event);
+                     } else if (currentJoiner.status === "cancelled") {
+                        cancelledEvents.push(event);
+                     }
+                  }
+               });
+               setInvitedEventsData({
+                  confirmedEvents,
+                  pendingEvents,
+                  cancelledEvents,
+               });
+               console.log(pendingEvents);
                setOwnedEventsData(ownedEvents);
                setUserData(data);
             }
@@ -56,11 +79,6 @@ export default function DashboardPage() {
             navigate("/");
          }
       });
-   };
-
-   const splitDateTime = (input) => {
-      const [datePart, timePart] = input.split(/-(?=\d{2}:\d{2})/);
-      return [datePart, timePart];
    };
 
    useEffect(() => {
@@ -94,35 +112,8 @@ export default function DashboardPage() {
                <div className="w-full flex flex-col gap-y-2">
                   {ownedEventsData.length > 0 ? (
                      ownedEventsData?.map((event, i) => (
-                        <div
-                           key={i}
-                           className="py-3 px-5 rounded-xl w-full bg-zinc-800 flex items-center justify-between"
-                        >
-                           <div className="flex flex-col">
-                              <span className="font-medium text-white text-lg">
-                                 {event.title}
-                              </span>
-                              <div className="flex items-center gap-x-2">
-                                 <span className="font-medium text-slate-300">
-                                    {dayjs(
-                                       splitDateTime(event.date_time)[0]
-                                    ).format("MMMM D, YYYY")}
-                                 </span>
-                                 <span className="text-slate-300">@</span>
-                                 <span className="rounded-lg bg-green-300 bg-opacity-50 text-green-950 font-medium px-1 border border-green-900">
-                                    {splitDateTime(event.date_time)[1]}
-                                 </span>
-                              </div>
-                           </div>
-                           <button
-                              onClick={() => {
-                                 setInviteModal(true);
-                                 setSelectedEvent(event);
-                              }}
-                              className="bg-green-600 rounded-xl px-3 py-2 font-medium text-green-950 hover:bg-green-500 transition-colors"
-                           >
-                              Invite
-                           </button>
+                        <div key={i} className="w-full">
+                           <EventCard type="owned" event={event} />
                         </div>
                      ))
                   ) : (
@@ -142,30 +133,77 @@ export default function DashboardPage() {
                </div>
                {/* invited events list */}
                <div className="w-full flex flex-col gap-y-2">
-                  {invitedEventsData && invitedEventsData?.length > 0 ? (
-                     <div className="w-full flex flex-col gap-y-2">
-                        {invitedEventsData?.map((event, i) => (
-                           <div
-                              key={i}
-                              className="py-3 px-5 rounded-xl w-full bg-zinc-800 flex flex-col"
-                           >
-                              <span className="font-medium text-white text-lg">
-                                 {event.title}
-                              </span>
-                              <div className="flex items-center gap-x-2">
-                                 <span className="font-medium text-slate-300">
-                                    {dayjs(
-                                       splitDateTime(event.date_time)[0]
-                                    ).format("MMMM D, YYYY")}
-                                 </span>
-                                 <span className="text-slate-300">@</span>
-                                 <span className="rounded-lg bg-green-300 bg-opacity-50 text-green-950 font-medium px-1 border border-green-900">
-                                    {splitDateTime(event.date_time)[1]}
-                                 </span>
-                              </div>
+                  {invitedEventsData?.pendingEvents?.length > 0 ||
+                  invitedEventsData?.confirmedEvents?.length > 0 ||
+                  invitedEventsData?.canceledEvents?.length > 0 ? (
+                     <>
+                        {invitedEventsData.confirmedEvents?.length > 0 && (
+                           <div className="w-full flex flex-col gap-y-2">
+                              {invitedEventsData?.confirmedEvents?.map(
+                                 (event, i) => {
+                                    const currentJoiner = event.joiners.find(
+                                       (joiner) =>
+                                          joiner.user_id ===
+                                          auth.currentUser.uid
+                                    );
+                                    return (
+                                       <div key={i} className="w-full">
+                                          <EventCard
+                                             type="invited"
+                                             event={event}
+                                             status={currentJoiner?.status}
+                                          />
+                                       </div>
+                                    );
+                                 }
+                              )}
                            </div>
-                        ))}
-                     </div>
+                        )}
+                        {invitedEventsData.pendingEvents?.length > 0 && (
+                           <div className="w-full flex flex-col gap-y-2">
+                              {invitedEventsData?.pendingEvents?.map(
+                                 (event, i) => {
+                                    const currentJoiner = event.joiners.find(
+                                       (joiner) =>
+                                          joiner.user_id ===
+                                          auth.currentUser.uid
+                                    );
+                                    return (
+                                       <div key={i} className="w-full">
+                                          <EventCard
+                                             type="invited"
+                                             event={event}
+                                             status={currentJoiner?.status}
+                                          />
+                                       </div>
+                                    );
+                                 }
+                              )}
+                           </div>
+                        )}
+                        {invitedEventsData.cancelledEvents?.length > 0 && (
+                           <div className="w-full flex flex-col gap-y-2">
+                              {invitedEventsData?.cancelledEvents?.map(
+                                 (event, i) => {
+                                    const currentJoiner = event.joiners.find(
+                                       (joiner) =>
+                                          joiner.user_id ===
+                                          auth.currentUser.uid
+                                    );
+                                    return (
+                                       <div key={i} className="w-full">
+                                          <EventCard
+                                             type="invited"
+                                             event={event}
+                                             status={currentJoiner?.status}
+                                          />
+                                       </div>
+                                    );
+                                 }
+                              )}
+                           </div>
+                        )}
+                     </>
                   ) : (
                      <p className="text-slate-300 font-medium text-xs">
                         You have no events yet.
