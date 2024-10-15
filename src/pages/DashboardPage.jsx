@@ -6,7 +6,7 @@ import { useState, useEffect, createRef } from "react";
 import { useClickAway } from "react-use";
 import { useNavigate } from "react-router-dom";
 // icons
-import { Check, Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { getUserByUid } from "../utils/requests/user";
 // atoms
 import { createEventModalAtom, inviteModalAtom } from "../utils/atoms/modals";
@@ -15,14 +15,12 @@ import { useAtom } from "jotai";
 // components
 import CreateEventModal from "../components/modals/CreateEventModal";
 import InviteModal from "../components/modals/InviteModal";
+import EventCard from "../components/cards/EventCard";
 // requests
 import {
    getEventsByOrganizer,
    getInvitedEvents,
 } from "../utils/requests/event";
-// dayjs
-import dayjs from "dayjs";
-import EventCard from "../components/cards/EventCard";
 
 const auth = getAuth(app);
 
@@ -34,7 +32,7 @@ export default function DashboardPage() {
    const [ownedEventsData, setOwnedEventsData] = useState([]);
    const [invitedEventsData, setInvitedEventsData] = useState(null);
 
-   const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
+   const [selectedEvent] = useAtom(selectedEventAtom);
 
    const [createEventModal, setCreateEventModal] =
       useAtom(createEventModalAtom);
@@ -135,7 +133,7 @@ export default function DashboardPage() {
                <div className="w-full flex flex-col gap-y-2">
                   {invitedEventsData?.pendingEvents?.length > 0 ||
                   invitedEventsData?.confirmedEvents?.length > 0 ||
-                  invitedEventsData?.canceledEvents?.length > 0 ? (
+                  invitedEventsData?.cancelledEvents?.length > 0 ? (
                      <>
                         {invitedEventsData.confirmedEvents?.length > 0 && (
                            <div className="w-full flex flex-col gap-y-2">

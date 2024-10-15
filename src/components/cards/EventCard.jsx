@@ -6,6 +6,13 @@ import { inviteModalAtom } from "../../utils/atoms/modals";
 import dayjs from "dayjs";
 // icons
 import { Check, X } from "lucide-react";
+// firebase
+import { app } from "../../../firebase";
+import { getAuth } from "firebase/auth";
+// requests
+import { cancelJoiner, acceptJoiner } from "../../utils/requests/event";
+
+const auth = getAuth(app);
 
 export default function EventCard({ type, event, status }) {
    const [, setSelectedEvent] = useAtom(selectedEventAtom);
@@ -14,6 +21,24 @@ export default function EventCard({ type, event, status }) {
    const splitDateTime = (input) => {
       const [datePart, timePart] = input.split(/-(?=\d{2}:\d{2})/);
       return [datePart, timePart];
+   };
+
+   const handleConfirm = async (e, eventId) => {
+      e.preventDefault();
+      const uid = auth.currentUser.uid;
+      const token = await auth.currentUser.getIdToken();
+      if (token && uid && eventId) {
+         await acceptJoiner(token, eventId, uid);
+      }
+   };
+
+   const handleCancel = async (e, eventId) => {
+      e.preventDefault();
+      const uid = auth.currentUser.uid;
+      const token = await auth.currentUser.getIdToken();
+      if (token && uid && eventId) {
+         await cancelJoiner(token, eventId, uid);
+      }
    };
 
    return (
@@ -36,6 +61,7 @@ export default function EventCard({ type, event, status }) {
          </div>
          {type === "invited" && (
             <div className="flex items-center gap-x-2">
+               {/* status */}
                {status === "pending" && (
                   <span className="text-xs font-medium bg-amber-300 px-3 py-1 bg-opacity-30 text-white rounded-lg">
                      {status.toUpperCase()}
@@ -46,17 +72,28 @@ export default function EventCard({ type, event, status }) {
                      {status.toUpperCase()}
                   </span>
                )}
-               {status === "confirmed" && (
+               {status === "accepted" && (
                   <span className="text-xs font-medium bg-green-300 px-3 py-1 bg-opacity-30 text-white rounded-lg">
                      {status.toUpperCase()}
                   </span>
                )}
-               <button className="flex items-center justify-center p-2 bg-green-300 bg-opacity-50 text-green-950 rounded-xl border border-green-900 hover:bg-white hover:bg-opacity-100 hover:border-white transition-all">
-                  <Check size={20} />
-               </button>
-               <button className="flex items-center justify-center p-2 bg-red-300 bg-opacity-50 text-red-950 rounded-xl border border-red-900 hover:bg-white hover:bg-opacity-100 hover:border-white transition-all">
-                  <X size={20} />
-               </button>
+               {/* buttons */}
+               {status !== "accepted" && (
+                  <button
+                     onClick={(e) => handleConfirm(e, event.id)}
+                     className="flex items-center justify-center p-2 bg-green-300 bg-opacity-50 text-green-950 rounded-xl border border-green-900 hover:bg-white hover:bg-opacity-100 hover:border-white transition-all"
+                  >
+                     <Check size={20} />
+                  </button>
+               )}
+               {status !== "cancelled" && (
+                  <button
+                     onClick={(e) => handleCancel(e, event.id)}
+                     className="flex items-center justify-center p-2 bg-red-300 bg-opacity-50 text-red-950 rounded-xl border border-red-900 hover:bg-white hover:bg-opacity-100 hover:border-white transition-all"
+                  >
+                     <X size={20} />
+                  </button>
+               )}
             </div>
          )}
          {type === "owned" && (
