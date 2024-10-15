@@ -13,6 +13,9 @@ import { createEventModalAtom } from "../utils/atoms/modals";
 import { useAtom } from "jotai";
 // components
 import CreateEventModal from "../components/modals/CreateEventModal";
+import { getEventsByOrganizer } from "../utils/requests/event";
+// dayjs
+import dayjs from "dayjs";
 
 const auth = getAuth(app);
 
@@ -21,6 +24,7 @@ export default function DashboardPage() {
    const modalRef = createRef();
 
    const [userData, setUserData] = useState(null);
+   const [ownedEventsData, setOwnedEventsData] = useState([]);
    const [createEventModal, setCreateEventModal] =
       useAtom(createEventModalAtom);
 
@@ -30,6 +34,9 @@ export default function DashboardPage() {
             const token = await user.getIdToken();
             if (token) {
                const data = await getUserByUid(token, user.uid);
+               const ownedEvents = await getEventsByOrganizer(token, user.uid);
+               setOwnedEventsData(ownedEvents);
+               console.log(ownedEvents);
                setUserData(data);
                console.log(data);
             }
@@ -37,6 +44,11 @@ export default function DashboardPage() {
             navigate("/");
          }
       });
+   };
+
+   const splitDateTime = (input) => {
+      const [datePart, timePart] = input.split(/-(?=\d{2}:\d{2})/);
+      return [datePart, timePart];
    };
 
    useEffect(() => {
@@ -50,6 +62,7 @@ export default function DashboardPage() {
    return (
       <div className="w-screen min-h-screen overflow-hidden flex flex-col items-center bg-zinc-900 py-20 relative">
          <div className="w-[600px] flex flex-col gap-y-10">
+            {/* owned events */}
             <div className="w-full flex items-center justify-between">
                <span className="text-white font-medium text-xl">
                   Your Events
@@ -61,6 +74,36 @@ export default function DashboardPage() {
                   <Plus size={20} />
                   <span>Create Event</span>
                </button>
+            </div>
+            {/* owned events list */}
+            <div className="w-full flex flex-col gap-y-2">
+               {ownedEventsData.length > 0 ? (
+                  ownedEventsData?.map((event, i) => (
+                     <div
+                        key={i}
+                        className="py-3 px-5 rounded-xl w-full bg-zinc-800 flex flex-col"
+                     >
+                        <span className="font-medium text-white text-lg">
+                           {event.title}
+                        </span>
+                        <div className="flex items-center gap-x-2">
+                           <span className="font-medium text-slate-300">
+                              {dayjs(splitDateTime(event.date_time)[0]).format(
+                                 "MMMM D, YYYY"
+                              )}
+                           </span>
+                           <span className="text-slate-300">@</span>
+                           <span className="rounded-lg bg-green-300 bg-opacity-50 text-green-950 font-medium px-1 border border-green-900">
+                              {splitDateTime(event.date_time)[1]}
+                           </span>
+                        </div>
+                     </div>
+                  ))
+               ) : (
+                  <p className="text-slate-300 font-medium text-sm">
+                     You have no events yet.
+                  </p>
+               )}
             </div>
          </div>
          {/* create event modal */}

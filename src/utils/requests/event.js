@@ -32,3 +32,16 @@ export const createEvent = async (
       console.error(err.message);
    }
 };
+
+export const getEventsByOrganizer = async (token, organizer) => {
+   try {
+      const response = await axios.get(`${baseUrl}/event/owned/${organizer}/`, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      return response.data;
+   } catch (err) {
+      console.error(err.message);
+   }
+};
